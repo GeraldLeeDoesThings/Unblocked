@@ -35,7 +35,7 @@ num_blocks = current_block['number']
 current_block_num = num_blocks
 aggregate = {}
 
-num_transactions = 5000  # change this to however many transactions you wish to save
+num_transactions = 2  # change this to however many transactions you wish to save
 
 while current_block_num > num_blocks - num_transactions:
     current_block = web3.eth.get_block(current_block_num, True)
