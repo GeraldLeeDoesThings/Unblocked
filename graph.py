@@ -27,6 +27,11 @@ class Graph:
             self.wallets[recipient.address] = \
                 self.wallets.get(recipient.address, recipient).process_transaction(transaction)
 
+    def add_wallet(self, wallet: Wallet):
+        self.wallets[wallet.address] = wallet
+
+    def add_transaction(self, transaction: Transaction):
+        self.transactions.add(transaction)
 
     def find_component(self, wallet: Wallet, depth: int = 5) -> Graph:
         visited_wallets = set()
@@ -61,14 +66,12 @@ class Graph:
 
         return Graph(visited_wallets, subgraph_transactions)
 
-
     def visualize(self):
         g = nx.DiGraph()
         for t in self.transactions:
-            g.add_edge(t.sender, t.recipient, weight=t.amount)
+            g.add_edge(t.sender.address, t.recipient.address, weight=t.amount)
         nx.draw_networkx(g)
         plt.show()
-
 
 
 class Wallet:
@@ -95,7 +98,7 @@ class Wallet:
         return False
 
     def __hash__(self):
-        return self.address
+        return hash(self.address)
 
 
 class Transaction:
