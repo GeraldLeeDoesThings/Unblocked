@@ -1,8 +1,9 @@
 from __future__ import annotations
-import queue
-import networkx as nx
 import matplotlib.pyplot as plt
+import networkx as nx
+import queue
 from typing import *
+from utils import Tree
 
 
 class Graph:
@@ -72,6 +73,26 @@ class Graph:
             g.add_edge(t.sender.address, t.recipient.address, weight=t.amount)
         nx.draw_networkx(g)
         plt.show()
+
+    def make_tree(self, source_wallet: Wallet, from_block_num: int, to_block_num: int) -> Tree[Wallet]:
+
+        if from_block_num > to_block_num:
+            return Tree(source_wallet, [])
+
+        filtered_transactions = []
+        min_closest_block_num = to_block_num
+        for transaction in source_wallet.get_transactions_out():
+            if transaction.block == min_closest_block_num:
+                filtered_transactions.append(transaction)
+            elif from_block_num <= transaction.block < min_closest_block_num:
+                min_closest_block_num = transaction.block
+                filtered_transactions = [transaction]
+
+        return Tree(
+            source_wallet,
+            [self.make_tree(transaction.recipient, min_closest_block_num + 1, to_block_num)
+             for transaction in filtered_transactions]
+        )
 
 
 class Wallet:
