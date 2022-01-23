@@ -33,39 +33,8 @@ class Graph:
 
     def add_transaction(self, transaction: Transaction):
         self.transactions.add(transaction)
-
-    def find_component(self, wallet: Wallet, depth: int = 5) -> Graph:
-        visited_wallets = set()
-        subgraph_transactions = set()
-        wallets_to_visit = queue.Queue()
-        wallets_to_visit.put(wallet)
-
-        neighbors = queue.Queue()
-
-        while (depth != 0):
-
-            while not wallets_to_visit.empty():
-
-                wallet = wallets_to_visit.get()
-                visited_wallets.add(wallet)  # never add wallet to wallets_to_visit again
-
-                for neighbor in wallet.transactions:
-
-                    if neighbor.sender not in visited_wallets:
-                        neighbors.put(neighbor.sender)
-                        visited_wallets.add(neighbor.sender)
-
-                    if neighbor.recipient not in visited_wallets:
-                        neighbors.put(neighbor.recipient)
-                        visited_wallets.add(neighbor.recipient)
-
-                    subgraph_transactions.add(neighbor)
-
-            depth -= 1
-            wallets_to_visit = neighbors
-            neighbors = queue.Queue()
-
-        return Graph(visited_wallets, subgraph_transactions)
+        self.wallets[transaction.sender.address].process_transaction(transaction)
+        self.wallets[transaction.recipient.address].process_transaction(transaction)
 
     def visualize(self):
         g = nx.DiGraph()
@@ -141,3 +110,37 @@ class Transaction:
 
     def __hash__(self):
         return self.nonce
+
+
+def find_component(wallet: Wallet, depth: int = 5) -> Graph:
+    visited_wallets = set()
+    subgraph_transactions = set()
+    wallets_to_visit = queue.Queue()
+    wallets_to_visit.put(wallet)
+
+    neighbors = queue.Queue()
+
+    while depth != 0:
+
+        while not wallets_to_visit.empty():
+
+            wallet = wallets_to_visit.get()
+            visited_wallets.add(wallet)  # never add wallet to wallets_to_visit again
+
+            for neighbor in wallet.transactions:
+
+                if neighbor.sender not in visited_wallets:
+                    neighbors.put(neighbor.sender)
+                    visited_wallets.add(neighbor.sender)
+
+                if neighbor.recipient not in visited_wallets:
+                    neighbors.put(neighbor.recipient)
+                    visited_wallets.add(neighbor.recipient)
+
+                subgraph_transactions.add(neighbor)
+
+        depth -= 1
+        wallets_to_visit = neighbors
+        neighbors = queue.Queue()
+
+    return Graph(visited_wallets, subgraph_transactions)
